@@ -141,7 +141,7 @@ class Beam(pg.sprite.Sprite):
     """
     ビームに関するクラス
     """
-    def __init__(self, bird: Bird):
+    def __init__(self, bird: Bird,num: Num):
         """
         ビーム画像Surfaceを生成する
         引数 bird：ビームを放つこうかとん
@@ -156,6 +156,7 @@ class Beam(pg.sprite.Sprite):
         self.rect.centery = bird.rect.centery+bird.rect.height*self.vy
         self.rect.centerx = bird.rect.centerx+bird.rect.width*self.vx
         self.speed = 10
+        self.angle0=angle
 
     def update(self):
         """
@@ -166,6 +167,12 @@ class Beam(pg.sprite.Sprite):
         if check_bound(self.rect) != (True, True):
             self.kill()
 
+class Neobeam(pg.sprite.Sprite):
+    """
+    弾幕に関するクラス
+    """
+    def __init__(self.bird: Bird,num: init):
+        
 
 class Explosion(pg.sprite.Sprite):
     """
@@ -289,7 +296,7 @@ def main():
             if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                 if score.value >= 10:
                     gravities.add(Gravity(400))  # 重力場を発動（400フレーム）
-                    score.value -= 10  # スコアを消費
+                    score.value -= 200  # スコアを消費
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
