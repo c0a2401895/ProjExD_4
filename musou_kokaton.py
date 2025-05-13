@@ -241,6 +241,28 @@ class Score:
         self.image = self.font.render(f"Score: {self.value}", 0, self.color)
         screen.blit(self.image, self.rect)
 
+class Gravity(pg.sprite.Sprite):
+    """
+    重力場に関するクラス
+    """
+    def __init__(self, life: int):
+        """
+        重力場のSurfaceを生成する
+        引数 life：重力場の発動時間
+        """
+        super().__init__()
+        self.image = pg.Surface((WIDTH, HEIGHT), pg.SRCALPHA)  # 透明度のある黒い矩形
+        self.image.fill((0, 0, 0, 128))  # 半透明の黒
+        self.rect = self.image.get_rect()
+        self.life = life
+
+    def update(self):
+        """
+        重力場の発動時間を減少させ、時間が尽きたら削除する
+        """
+        self.life -= 1
+        if self.life < 0:
+            self.kill()
 
 def main():
     pg.display.set_caption("真！こうかとん無双")
@@ -253,6 +275,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    gravities = pg.sprite.Group()  # 重力場のグループ
 
     tmr = 0
     clock = pg.time.Clock()
@@ -263,6 +286,10 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+                if score.value >= 10:
+                    gravities.add(Gravity(400))  # 重力場を発動（400フレーム）
+                    score.value -= 10  # スコアを消費
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
@@ -288,9 +315,21 @@ def main():
             pg.display.update()
             time.sleep(2)
             return
+        # 重力場の効果
+        for gravity in gravities:
+            for bomb in pg.sprite.spritecollide(gravity, bombs, True):  # 重力場内の爆弾を削除
+                exps.add(Explosion(bomb, 50))  # 爆発エフェクト
+                score.value += 1  # スコアを加算
+            for emy in pg.sprite.spritecollide(gravity, emys, True):  # 重力場内の敵機を削除
+                exps.add(Explosion(emy, 100))  # 爆発エフェクト
+                score.value += 10  # スコアを加算
+        
+        gravities.update()
+        gravities.draw(screen)
 
         bird.update(key_lst, screen)
         beams.update()
+
         beams.draw(screen)
         emys.update()
         emys.draw(screen)
