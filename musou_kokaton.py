@@ -291,9 +291,9 @@ def main():
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
 
-            if event.type == pg.KEYDOWN and event.key == pg.K_s and score.value >= 20 and len(shields) == 0:
+            if event.type == pg.KEYDOWN and event.key == pg.K_s and score.value >= 50 and len(shields) == 0:
                 shields.add(Shield(bird))
-                score.value -= 20
+                score.value -= 50
 
         screen.blit(bg_img, [0, 0])
 
