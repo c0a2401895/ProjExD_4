@@ -163,6 +163,9 @@ class Beam(pg.sprite.Sprite):
         self.rect.centery = bird.rect.centery+bird.rect.height*self.vy
         self.rect.centerx = bird.rect.centerx+bird.rect.width*self.vx
         self.speed = 10
+        self.angle0=angle
+
+
 
     def update(self):
         """
@@ -172,6 +175,16 @@ class Beam(pg.sprite.Sprite):
         self.rect.move_ip(self.speed*self.vx, self.speed*self.vy)
         if check_bound(self.rect) != (True, True):
             self.kill()
+
+class Neobeam(pg.sprite.Sprite):
+    """
+    弾幕に関するクラス
+    """
+    def __init__(self,bird:Bird,num:int):
+          self.beam_angle=range(-50,-25,0,+25,+50)
+    def gen_beams(self):
+        self.beam_angle=range(-50,-25,0,+25,+50)
+
 
 
 class Explosion(pg.sprite.Sprite):
@@ -248,6 +261,28 @@ class Score:
         self.image = self.font.render(f"Score: {self.value}", 0, self.color)
         screen.blit(self.image, self.rect)
 
+class Gravity(pg.sprite.Sprite):
+    """
+    重力場に関するクラス
+    """
+    def __init__(self, life: int):
+        """
+        重力場のSurfaceを生成する
+        引数 life：重力場の発動時間
+        """
+        super().__init__()
+        self.image = pg.Surface((WIDTH, HEIGHT), pg.SRCALPHA)  # 透明度のある黒い矩形
+        self.image.fill((0, 0, 0, 128))  # 半透明の黒
+        self.rect = self.image.get_rect()
+        self.life = life
+
+    def update(self):
+        """
+        重力場の発動時間を減少させ、時間が尽きたら削除する
+        """
+        self.life -= 1
+        if self.life < 0:
+            self.kill()
 
 def main():
     pg.display.set_caption("真！こうかとん無双")
@@ -260,6 +295,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    gravities = pg.sprite.Group()  # 重力場のグループ
 
     tmr = 0
     clock = pg.time.Clock()
@@ -270,6 +306,12 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+                if score.value >= 200:
+                    gravities.add(Gravity(400))  # 重力場を発動（400フレーム）
+                    score.value -= 200  # スコアを消費
+            
+                
             if event.type == pg.KEYDOWN and event.key == pg.K_RSHIFT:
                 if bird.state == "normal" and score.value >= 100:
                     bird.state = "hyper"
@@ -304,9 +346,21 @@ def main():
                 pg.display.update()
                 time.sleep(2)
                 return
+        # 重力場の効果
+        for gravity in gravities:
+            for bomb in pg.sprite.spritecollide(gravity, bombs, True):  # 重力場内の爆弾を削除
+                exps.add(Explosion(bomb, 50))  # 爆発エフェクト
+                score.value += 1  # スコアを加算
+            for emy in pg.sprite.spritecollide(gravity, emys, True):  # 重力場内の敵機を削除
+                exps.add(Explosion(emy, 100))  # 爆発エフェクト
+                score.value += 10  # スコアを加算
+        
+        gravities.update()
+        gravities.draw(screen)
 
         bird.update(key_lst, screen)
         beams.update()
+
         beams.draw(screen)
         emys.update()
         emys.draw(screen)
