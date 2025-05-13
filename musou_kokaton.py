@@ -90,6 +90,11 @@ class Bird(pg.sprite.Sprite):
         引数1 key_lst：押下キーの真理値リスト
         引数2 screen：画面Surface
         """
+  
+        if key_lst[pg.K_LSHIFT]: #追加要素1スピード加速
+            self.speed = 20
+        else:
+            self.speed = 10
         sum_mv = [0, 0]
         for k, mv in __class__.delta.items():
             if key_lst[k]:
@@ -349,6 +354,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+  
     gravities = pg.sprite.Group()  # 重力場のグループ
     shields = pg.sprite.Group()
 
